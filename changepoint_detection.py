@@ -16,12 +16,24 @@ from modules.statistics import *
 from modules.learning import *
 from modules.io import *
 
+def read_wash_csv(wash_path):
 
-def run_cp_detection(extr_rains=True, method="method1"):
-    filename = './input_panel.csv'
-    dates_wash_start = pd.to_datetime(pd.Series(['2013-03-11 00:00:00', '2013-07-10 00:00:00', '2013-08-14 00:00:00', '2013-08-21 00:00:00', '2013-08-26 00:00:00']))
-    dates_wash_stop = pd.to_datetime(pd.Series(['2013-03-12 00:00:00', '2013-07-11 00:00:00', '2013-08-15 00:00:00', '2013-08-22 00:00:00','2013-08-27 00:00:00']))
-    df = pd.read_csv('./input_panel.csv', index_col = 'timestamp')
+    wash_df = pd.read_csv(wash_path)
+    dates_wash_start = pd.to_datetime(wash_df.start)
+    dates_wash_stop = pd.to_datetime(wash_df.stop)
+    print(dates_wash_start.values)
+    print(dates_wash_stop.values)
+    return dates_wash_start, dates_wash_stop
+
+def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
+    filename = path
+    wash_filename = wash_path
+    if wash_filename != '':
+        dates_wash_start, dates_wash_stop = read_wash_csv(wash_filename)
+    else:
+        dates_wash_start = pd.to_datetime(pd.Series([]))
+        dates_wash_stop = pd.to_datetime(pd.Series([]))
+    df = pd.read_csv(filename, index_col = 'timestamp')
     df = df.dropna()
     df.index = pd.DatetimeIndex(df.index)
 
