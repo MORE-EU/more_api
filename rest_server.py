@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request, jsonify
 from changepoint_detection import run_cp_detection
+from rains import extract_rains
 
 app = Flask(__name__)
 
@@ -45,6 +46,14 @@ def cp_detection(dataset_id):
                                  wb1=wb1, wb2=wb2, thrsh=thrsh,
                                  custom_cp_starts=custom_cp_starts,
                                  custom_cp_ends=custom_cp_ends)
+    return result_df.to_json()
+
+@app.route("/rains/<dataset_id>", methods=['POST'])
+def rains(dataset_id):
+    path = path_dict[dataset_id]['data']
+    start_date = request.json.get('start_date')
+    end_date = request.json.get('end_date')
+    result_df = extract_rains(path, start_date, end_date)
     return result_df.to_json()
 
 if __name__ == "__main__":
