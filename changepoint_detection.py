@@ -25,7 +25,10 @@ def read_wash_csv(wash_path):
     print(dates_wash_stop.values)
     return dates_wash_start, dates_wash_stop
 
-def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
+def run_cp_detection(w_train, wa1, wa2, wa3, wb1, wb2, thrsh,
+                     start_date, end_date, path, custom_cp_starts,
+                     custom_cp_ends, wash_path='',
+                     extr_rains=True, method="method1"):
     filename = path
     wash_filename = wash_path
     if wash_filename != '':
@@ -36,6 +39,12 @@ def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
     df = pd.read_csv(filename, index_col = 'timestamp')
     df = df.dropna()
     df.index = pd.DatetimeIndex(df.index)
+    if start_date is None:
+        start_date = df.index.min()
+    if end_date is None:
+        end_date = df.index.max()
+    print(start_date, end_date)
+    df = filter_dates(df, start_date, end_date)
 
     scaler = MinMaxScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
@@ -56,6 +65,10 @@ def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
     # filter light rains
     x = 0.1
     ids = []
+    print(dates_rain_start.size)
+    print(dates_rain_stop.size)
+    if dates_rain_stop.size < dates_rain_start.size:
+        dates_rain_start = dates_rain_start[:-1] # drop last starting date for rains to match endings
     for idx in range(dates_rain_start.size):
         d1 = dates_rain_start[idx]
         d2 = dates_rain_stop[idx]
@@ -66,14 +79,17 @@ def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
 
 
     # initialize params
-    wa1 = 10  # window-length of days to train (before the rain), for Method 1
-    wa2 = 5 # window-length of days to validate (before the rain), for Method 1
-    wa3 = 10 # window-length of days to test (after the rain), for Method 1
-    wb1 = 10 # window-length of days to test (before the rain), for Method 2
-    wb2 = 5 # window-length of days to test (after the rain), for Method 2
+    # wa1 = 10  # window-length of days to train (before the rain), for Method 1
+    # wa2 = 5 # window-length of days to validate (before the rain), for Method 1
+    # wa3 = 10 # window-length of days to test (after the rain), for Method 1
+    # wb1 = 10 # window-length of days to test (before the rain), for Method 2
+    # wb2 = 5 # window-length of days to test (after the rain), for Method 2
+    print("PARAMETERS")
+    print(wa1, wa2, wa3)
+    print(wb1, wb2)
     error_br_column = 5 #0=r_squared, 1=mae, 2=me, 3=mape, 4=mpe, 5=median error
     error_ar_column = 5
-    thrsh = 1
+    # thrsh = 1
     errors_br1 = np.empty((dates_rain_start_filtered.size, 6))
     errors_ar1 = np.empty((dates_rain_start_filtered.size, 6))
     scores = np.empty((dates_rain_start_filtered.size))
@@ -82,8 +98,17 @@ def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
 
 
     # detect changepoints
-    p_changepoints_start = (pd.Series(dates_rain_start_filtered.tolist() + dates_wash_start.tolist()).sort_values())
-    p_changepoints_stop = (pd.Series(dates_rain_stop_filtered.tolist() + dates_wash_stop.tolist()).sort_values())
+    # add custom potential changepoints
+    #
+    cu_starts = pd.to_datetime(custom_cp_starts)
+    cu_ends = pd.to_datetime(custom_cp_ends)
+    #
+    p_changepoints_start = (pd.Series(dates_rain_start_filtered.tolist() +
+                                      dates_wash_start.tolist() +
+                                      cu_starts.tolist()).sort_values())
+    p_changepoints_stop = (pd.Series(dates_rain_stop_filtered.tolist() +
+                                     dates_wash_stop.tolist() +
+                                     cu_ends.tolist()).sort_values())
     target = 'power'
     feats = ['irradiance', 'mod_temp']
     error_name_br = error_names[error_br_column]
@@ -117,7 +142,7 @@ def run_cp_detection(path, wash_path='', extr_rains=True, method="method1"):
         ref_points = pd.Index(pd.Series(p_changepoints_stop.iloc[list(effective_cp1)]))
         res = method1_segmentation(df=df, df_scaled=df_scaled ,p_changepoints_start=p_changepoints_start,
                                    p_changepoints_stop=p_changepoints_stop, effective_cp1=effective_cp1,
-                                   w_train=30, ref_points=ref_points, feats=feats, target=target)
+                                   w_train=w_train, ref_points=ref_points, feats=feats, target=target)
         return res
     else:
         print("Not implemented")
