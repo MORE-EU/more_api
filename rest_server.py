@@ -17,11 +17,6 @@ def get_data():
 
 @app.route("/cp_detection/<dataset_id>", methods=['POST'])
 def cp_detection(dataset_id):
-    # add  these params to start with
-    # dates
-    # w_train
-    # wa1 , wa2, wa3
-    # wb1, wb2
     start_date = request.json.get('start_date')
     end_date = request.json.get('end_date')
     w_train = request.json.get('w_train', 30)
@@ -35,10 +30,6 @@ def cp_detection(dataset_id):
     custom_cp_ends = request.json.get('c_ends', [])
     path = path_dict[dataset_id]['data']
     wash_path = path_dict[dataset_id]['washes']
-    print("DEBUG==========")
-    print(path)
-    print(wash_path)
-    print(request.json)
     result_df = run_cp_detection(path=path, wash_path=wash_path,
                                  start_date=start_date,
                                  end_date=end_date, w_train=w_train,

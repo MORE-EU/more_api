@@ -10,7 +10,6 @@ def extract_rains(path, start_date, end_date):
         start_date = df.index.min()
     if end_date is None:
         end_date = df.index.max()
-    print(start_date, end_date)
     df = filter_dates(df, start_date, end_date)
 
     scaler = MinMaxScaler()
@@ -31,10 +30,8 @@ def extract_rains(path, start_date, end_date):
     # filter light rains
     x = 0.1
     ids = []
-    print(dates_rain_start.size)
-    print(dates_rain_stop.size)
     if dates_rain_stop.size < dates_rain_start.size:
-        dates_rain_start = dates_rain_start[:-1] # drop last starting date for rains to match endings
+        dates_rain_start = dates_rain_start[:-1] # drop last starting date for lists to match in size
     for idx in range(dates_rain_start.size):
         d1 = dates_rain_start[idx]
         d2 = dates_rain_stop[idx]
