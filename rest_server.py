@@ -37,7 +37,7 @@ def cp_detection(dataset_id):
                                  wb1=wb1, wb2=wb2, thrsh=thrsh,
                                  custom_cp_starts=custom_cp_starts,
                                  custom_cp_ends=custom_cp_ends)
-    return result_df.to_json()
+    return result_df.astype(str).to_json()
 
 @app.route("/rains/<dataset_id>", methods=['POST'])
 def rains(dataset_id):
@@ -45,7 +45,7 @@ def rains(dataset_id):
     start_date = request.json.get('start_date')
     end_date = request.json.get('end_date')
     result_df = extract_rains(path, start_date, end_date)
-    return result_df.to_json()
+    return result_df.astype(str).to_json()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8889, debug=True)
