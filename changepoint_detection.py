@@ -124,68 +124,11 @@ def run_cp_detection(w_train, wa1, wa2, wa3, wb1, wb2, thrsh,
 
     effective_cp1 = df_events_output1[mask1]["id"].values
 
-    #print(f'Number of "effective" changepoints using Method 1: {len(set(effective_cp1))}')
-    if method == "method1":
-        ref_points = pd.Index(pd.Series(p_changepoints_stop.iloc[list(effective_cp1)]))
-        res = method1_segmentation(df=df, df_scaled=df_scaled ,p_changepoints_start=p_changepoints_start,
-                                   p_changepoints_stop=p_changepoints_stop, effective_cp1=effective_cp1,
-                                   w_train=w_train, ref_points=ref_points, feats=feats, target=target)
-        return res
-    else:
-        print("Not implemented")
-
-# method1
-def method1_segmentation(df, df_scaled, p_changepoints_start, p_changepoints_stop, effective_cp1, ref_points, feats, target, w_train=30):
-    # train model
-    model1, training_error, validation_error = train_on_reference_points(df_scaled, w_train, ref_points, feats, target)
-
 
     dates_changepoints = pd.DatetimeIndex(p_changepoints_stop.iloc[list(effective_cp1)])
+
     dates_start = (pd.Index(pd.Series(p_changepoints_start.iloc[list(effective_cp1)].tolist()).sort_values()))
     dates_stop = (pd.Index(pd.Series(p_changepoints_stop.iloc[list(effective_cp1)].tolist()).sort_values()))
-    dates_start = dates_start.union([max(df.index)])
-    dates_stop = dates_stop.union([min(df.index)])
 
-    # assign scores
-    ref_model = model1
-    slopes = []
-    mpe_scores = []
-    sign_slopes = []
-    for j, d2 in enumerate(dates_start):
-        d1 = dates_stop[dates_stop.get_loc(d2, method='pad')]
-        try:
-            y_pred = predict(df_scaled.loc[d1:d2], ref_model, feats, target)
-            diff = (df_scaled.loc[d1:d2].power - y_pred).values
-            line , slope, _ = get_ts_line_and_slope(diff)
-            mpe_scores.append(st.score_segment(df_scaled.loc[d1:d2].power, y_pred)[0])
-            slopes.append(-slope)
-            sign_slopes.append(np.sign(-slope))
-        except:
-            sign_slopes.append(np.finfo('d').min)
-            slopes.append(np.finfo('d').min)
-            mpe_scores.append(1)
-
-    # format scores for output
-    indices = np.argsort(np.array(mpe_scores)*(np.array(sign_slopes)))
-    all_scores = []
-    all_dates_start = []
-    all_dates_end = []
-    for j in indices:
-        d2 = dates_start[j]
-        d1 = dates_stop[dates_stop.get_loc(d2, method='pad')]
-        try:
-            d3 = dates_stop[dates_stop.get_loc(d2, method='bfill')]
-            d4 = d3 + pd.to_timedelta(d2-d1)
-        except:
-            d3 = d2
-            d4 = d2
-        if slopes[j] > 0 and mpe_scores[j]<0 and len(df_scaled.loc[d1:d2])>0:
-            y_pred = predict(df_scaled.loc[d1:d2], model1, feats, target)
-            all_dates_start.append(d1)
-            all_dates_end.append(d2)
-            all_scores.append(-sign_slopes[j]*mpe_scores[j])
-            diff = ((df_scaled.loc[d1:d2].power - y_pred))
-            line , slope, _ = get_ts_line_and_slope(diff.values)
-
-    df_segments_output = (pd.DataFrame.from_dict({"Score": all_scores, "Starting date": all_dates_start, "Ending date": all_dates_end}))
-    return df_segments_output
+    res = pd.DataFrame(list(zip(dates_start, dates_stop)), columns=['Starting_date', 'Ending_date'])
+    return res
