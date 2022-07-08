@@ -17,10 +17,14 @@ from modules.learning import *
 from modules.io import *
 
 def read_wash_csv(wash_path):
-
     wash_df = pd.read_csv(wash_path)
-    dates_wash_start = pd.to_datetime(wash_df.start)
-    dates_wash_stop = pd.to_datetime(wash_df.stop)
+    res = pd.DataFrame(list(zip(wash_df.start, wash_df.stop)), columns=['Starting_date', 'Ending_date'])
+    return res
+
+def get_wash_dates(wash_path):
+    wash_df = pd.read_csv(wash_path)
+    dates_wash_start = pd.to_datetime(wash_df.start, format='%Y-%m-%d %H:%M:%S')
+    dates_wash_stop = pd.to_datetime(wash_df.stop, format='%Y-%m-%d %H:%M:%S')
     return dates_wash_start, dates_wash_stop
 
 def run_cp_detection(w_train, wa1, wa2, wa3, wb1, wb2, thrsh,
@@ -30,7 +34,7 @@ def run_cp_detection(w_train, wa1, wa2, wa3, wb1, wb2, thrsh,
     filename = path
     wash_filename = wash_path
     if wash_filename != '':
-        dates_wash_start, dates_wash_stop = read_wash_csv(wash_filename)
+        dates_wash_start, dates_wash_stop = get_wash_dates(wash_filename)
     else:
         dates_wash_start = pd.to_datetime(pd.Series([]))
         dates_wash_stop = pd.to_datetime(pd.Series([]))

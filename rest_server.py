@@ -1,19 +1,27 @@
 from flask import Flask
 from flask import request, jsonify
-from changepoint_detection import run_cp_detection
+from changepoint_detection import run_cp_detection, read_wash_csv
 from rains import extract_rains
 
 app = Flask(__name__)
 
-data_dict = {"1": {"id":1, "name":"Eugene", "washes": True},
-             "2": {"id":2, "name":"Cocoa", "washes": False}}
+data_dict = {"eugene": {"id":1, "name":"Eugene", "washes": True},
+             "cocoa": {"id":2, "name":"Cocoa", "washes": False}}
 
-path_dict = {"1": {"data":"./eugene.csv", "washes":"./eugene_washes.csv"},
-             "2": {"data":"./cocoa.csv", "washes":""}}
+path_dict = {"eugene": {"data":"./data/eugene.csv", "washes":"./data/eugene_washes.csv"},
+             "cocoa": {"data":"./data/cocoa.csv", "washes":""}}
 
 @app.route("/data", methods=['GET'])
 def get_data():
     return jsonify(data_dict)
+
+@app.route("/washes/<dataset_id>", methods=['POST'])
+def has_washes(dataset_id):
+    if dataset_id in data_dict.keys():
+        #return jsonify(data_dict[dataset_id]["washes"])
+        res = read_wash_csv(path_dict[dataset_id]["washes"])
+        return res.astype(str).to_json()
+    return False
 
 @app.route("/cp_detection/<dataset_id>", methods=['POST'])
 def cp_detection(dataset_id):
