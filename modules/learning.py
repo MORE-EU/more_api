@@ -14,7 +14,7 @@ from sklearn.linear_model import TheilSenRegressor
 
 def predict(df_test, model, feats, target):
     """
-    Applies a regression model to predict values of a dependent variable for a given dataframe and 
+    Applies a regression model to predict values of a dependent variable for a given dataframe and
     given features.
 
     Args:
@@ -23,7 +23,7 @@ def predict(df_test, model, feats, target):
         feats: List of strings: each string is the name of a column of df_test.
         target: The name of the column of df corresponding to the dependent variable.
     Returns:
-        y_pred: Array of predicted values. 
+        y_pred: Array of predicted values.
     """
 
     df_x = df_test[feats]
@@ -36,18 +36,18 @@ def predict(df_test, model, feats, target):
 
 def fit_linear_model(df, feats, target, a=1e-4, deg=3, method='ridge', fit_intercept=True, include_bias=True):
     """
-    Fits a regression model on a given dataframe, and returns the model, the predicted values and the associated 
-    scores. Applies Ridge Regression with polynomial features. 
+    Fits a regression model on a given dataframe, and returns the model, the predicted values and the associated
+    scores. Applies Ridge Regression with polynomial features.
 
     Args:
         df: The input dataframe.
         feats: List of names of columns of df. These are the feature variables.
         target: The name of a column of df corresponding to the dependent variable.
-        a: A positive float. Regularization strength parameter for the linear least squares function 
-        (the loss function) where regularization is given by the l2-norm. 
+        a: A positive float. Regularization strength parameter for the linear least squares function
+        (the loss function) where regularization is given by the l2-norm.
         deg: The degree of the regression polynomial.
 
-    Returns:    
+    Returns:
         pipeline: The regression model. This is an instance of Pipeline.
         y_pred: An array with the predicted values.
         r_sq: The coefficient of determination “R squared”.
@@ -64,18 +64,18 @@ def fit_linear_model(df, feats, target, a=1e-4, deg=3, method='ridge', fit_inter
     polynomial_features = PolynomialFeatures(degree=deg, include_bias=include_bias)
     if method == 'ridge':
         model = Ridge(alpha=a, fit_intercept=fit_intercept)
-        
+
     elif method == 'ols':
         model = LinearRegression(fit_intercept=fit_intercept)
     elif method == 'rf':
         model = RFRegressor(n_jobs = -1)
     else:
         print('Unsupported method')
-    
+
 
     pipeline = Pipeline([("polynomial_features", polynomial_features),
                          ("regression", model)])
-    
+
 
     pipeline.fit(X, y)
     y_pred = pipeline.predict(X)
@@ -85,15 +85,15 @@ def fit_linear_model(df, feats, target, a=1e-4, deg=3, method='ridge', fit_inter
 
 def get_line_and_slope(values):
     """
-    Fits a line on the 2-dimensional graph of a regular time series, defined by a sequence of real values. 
+    Fits a line on the 2-dimensional graph of a regular time series, defined by a sequence of real values.
 
     Args:
         values: A list of real values.
 
-    Returns: 
+    Returns:
         line: The list of values as predicted by the linear model.
         slope: Slope of the line.
-        intercept: Intercept of the line.   
+        intercept: Intercept of the line.
     """
 
     ols = LinearRegression()
@@ -108,25 +108,25 @@ def get_line_and_slope(values):
 
 def train_on_reference_points(df, w_train, ref_points, feats, target, random_state=0):
     """
-    Trains a regression model on a training set defined by segments of a dataframe. 
-    These segments are defined by a set of starting points and a parameter indicating their duration. 
-    In each segment, one subset of points is randomly chosen as the training set and the remaining points 
+    Trains a regression model on a training set defined by segments of a dataframe.
+    These segments are defined by a set of starting points and a parameter indicating their duration.
+    In each segment, one subset of points is randomly chosen as the training set and the remaining points
     define the validation set.
-    
+
     Args:
-        df: Input dataframe. 
+        df: Input dataframe.
         w_train: The duration, given as a number of days, of the segments where the model is trained.
         ref_points: A list containing the starting date of each segment where the model is trained.
         feats: A list of names of columns of df corresponding to the feature variables.
         target: A name of a column of df corresponding to the dependent variable.
-        random_state: Seed for a random number generator, which is used in randomly selecting the validation 
+        random_state: Seed for a random number generator, which is used in randomly selecting the validation
         set among the points in a fixed segment.
 
     Returns:
         model: The regression model. This is an instance of Pipeline.
-        training_scores: An array containing scores for the training set. It contains the coefficient 
+        training_scores: An array containing scores for the training set. It contains the coefficient
         of determination “R squared”, the mean absolute error, the mean error, the mean absolute percentage error.
-        validation_scores: An array containing scores for the validation set. It contains the coefficient 
+        validation_scores: An array containing scores for the validation set. It contains the coefficient
         of determination “R squared”, the mean absolute error, the mean error, the mean absolute percentage error.
     """
 
@@ -236,12 +236,12 @@ def fit_pipeline(df, feats, target, pipeline, params):
         df: The input dataframe.
         feats: List of names of columns of df. These are the feature variables.
         target: The name of a column of df corresponding to the dependent variable.
-        pipeline: A pipeline instance, a scikit-learn object that sequentially applies a list of given 
+        pipeline: A pipeline instance, a scikit-learn object that sequentially applies a list of given
                   preprocessing steps and fits a selected machine learning model.
         params: A dictionary that contains all the parameters that will be used by `pipeline`.
                 The dictionary keys must follow the scikit-learn naming conventions.
 
-    Returns:    
+    Returns:
         pipeline: The fitted model. This is an instance of Pipeline.
         y_pred: An array with the predicted values.
         r_sq: The coefficient of determination “R squared”.
@@ -250,7 +250,7 @@ def fit_pipeline(df, feats, target, pipeline, params):
         mape: The mean absolute percentage error.
         mpe: The mean percentage error.
     """
-    
+
     df_x = df[feats]
     df_y = df[target]
     X = df_x.values
@@ -265,7 +265,7 @@ def fit_pipeline(df, feats, target, pipeline, params):
 
 def lasso_selection(df, features, target, alphas=None):
     """
-    Utilizes Lasso regression, which penalizes the l1 norm of the weights and indtroduces sparsity in the solution, 
+    Utilizes Lasso regression, which penalizes the l1 norm of the weights and indtroduces sparsity in the solution,
     to find the most `relevant` features, i.e. the ones that have non-zero weights
 
     Args:
@@ -274,10 +274,10 @@ def lasso_selection(df, features, target, alphas=None):
         target: A name of a column of df corresponding to the dependent variable.
         alphas: A list of regularization coefficients to be used, if left as None the alphas are set automatically.
 
-    Returns: 
+    Returns:
         selected_features: A list with the name of the columns that were selected by the Lasso method.
     """
-    
+
     X = df[features]
     y = df[target]
     lasso = LassoCV(cv=5, random_state=42, alphas=alphas).fit(X, y)
@@ -288,7 +288,7 @@ def lasso_selection(df, features, target, alphas=None):
 
 
 def perform_grid_search(df, feats, target, scorer, model, params, randomized=False):
-    
+
     """
     Performs a grid-search to find the parameters in the provided search space that yield the best results.
     Used for model tuning.
@@ -302,69 +302,69 @@ def perform_grid_search(df, feats, target, scorer, model, params, randomized=Fal
         params: A dictionary containing all the parameters to be tested.
         randomized: If set to True, a random sample of all the parameter combinations will be tested.
 
-    Returns: 
+    Returns:
         selected_params: Dictionary that contains the combination of parameters that resulted in the best score during grid search.
     """
-    
+
     df_x = df[feats]
     df_y = df[target]
     X = df_x.values
     y = df_y.values
-    
+
     model = model
-    
+
     if randomized == True:
         grid_pipeline = RandomizedSearchCV(model, params, n_iter=100, verbose=0, n_jobs=-1, pre_dispatch=64, scoring=scorer, cv=3, random_state=42).fit(X, y)
     else:
         grid_pipeline = GridSearchCV(model, params, verbose=0, n_jobs=-1, pre_dispatch=64, scoring=scorer, cv=3).fit(X, y)
-   
+
     selected_params = {}
     for key in  params:
         selected_params[key] = grid_pipeline.best_params_[key]
-    
+
     return selected_params
 
 
 def get_ts_line_and_slope(values):
     """
-    Fits a line on the 2-dimensional graph of a regular time series, defined by a sequence of real values. 
+    Fits a line on the 2-dimensional graph of a regular time series, defined by a sequence of real values.
 
     Args:
         values: A list of real values.
 
-    Returns: 
+    Returns:
         line: The list of values as predicted by the linear model.
         slope: Slope of the line.
-        intercept: Intercept of the line.   
+        intercept: Intercept of the line.
     """
 
     ols = TheilSenRegressor(random_state=0)
     X = np.arange(len(values)).reshape(-1,1)
     y = values.reshape(-1,1)
-    
+
     ols.fit(X, y.ravel())
     line = ols.predict(X)
     slope = ols.coef_.item()
     intercept = ols.intercept_.item()
-    return line, slope, intercept  
+    return line, slope, intercept
 
 
 def calc_changepoints_one_model(df, dates_rain_start, dates_rain_stop, model, target, feats, w1, w2):
     """
-    Returns errors associated with changepoint detection in the input segments. Applies the method using one 
+    Returns errors associated with changepoint detection in the input segments. Applies the method using one
     model in all segments (Method 2).
     Args:
         df: Input pandas dataframe
-        dates_rain_start: Array of starting points of segments under investigation 
-        dates_rain_stop: Array of ending points of segments under investigation 
-        model: Regression model 
+        dates_rain_start: Array of starting points of segments under investigation
+        dates_rain_stop: Array of ending points of segments under investigation
+        model: Regression model
         target: Name of dependant variable in model
         feats: List of feature variables in model
-        w1: Number of days defining the period before each segment, which will be used for calculating the associated score 
-        w2: Number of days defining the period after each segment, which will be used for calculating the associated score 
+        w1: Number of days defining the period before each segment, which will be used for calculating the associated score
+        w2: Number of days defining the period after each segment, which will be used for calculating the associated score
     Returns:
-        errors_br: Array containing prediction errors before each segment  
-        errors_ar: Array containing prediction errors after each segment 
+        errors_br: Array containing prediction errors before each segment
+        errors_ar: Array containing prediction errors after each segment
     """
     errors_br = np.empty((dates_rain_start.size, 6))
     errors_ar = np.empty((dates_rain_start.size, 6))
@@ -383,25 +383,25 @@ def calc_changepoints_one_model(df, dates_rain_start, dates_rain_stop, model, ta
         except:
             errors_ar[i,:] = [np.nan]*6
             errors_br[i,:] = [np.nan]*6
-    return errors_br, errors_ar        
+    return errors_br, errors_ar
 
 
 def calc_changepoints_many_models(df, dates_rain_start, dates_rain_stop, target, feats, w1, w2, w3):
     """
-    Returns errors associated with changepoint detection in the input segments. Applies the method using one 
+    Returns errors associated with changepoint detection in the input segments. Applies the method using one
     model for each segment (Method 1).
     Args:
         df: Input pandas dataframe
-        dates_rain_start: Array of starting points of segments under investigation 
-        dates_rain_stop: Array of ending points of segments under investigation 
+        dates_rain_start: Array of starting points of segments under investigation
+        dates_rain_stop: Array of ending points of segments under investigation
         target: Name of dependant variable in model
         feats: List of feature variables in model
         w1: Number of days defining the period before each segment, which will be used for training the model
-        w2: Number of days defining the period before each segment, which will be used for calculating the associated score 
-        w3: Number of days defining the period after each segment, which will be used for calculating the associated score 
+        w2: Number of days defining the period before each segment, which will be used for calculating the associated score
+        w3: Number of days defining the period after each segment, which will be used for calculating the associated score
     Returns:
-        errors_br: Array containing prediction errors before each segment  
-        errors_ar: Array containing prediction errors after each segment 
+        errors_br: Array containing prediction errors before each segment
+        errors_ar: Array containing prediction errors after each segment
     """
     errors_br = np.empty((dates_rain_start.size, 6))
     errors_ar = np.empty((dates_rain_start.size, 6))
@@ -413,12 +413,12 @@ def calc_changepoints_many_models(df, dates_rain_start, dates_rain_stop, target,
         except:
             errors_ar[i,:] = [np.nan]*6
             errors_br[i,:] = [np.nan]*6
-    return errors_br, errors_ar 
+    return errors_br, errors_ar
 def changepoint_scores(df, feats, target, d1, d2, w_train, w_val, w_test):
     """
     Given as input a dataframe and a reference interval where a changepoint may lie, trains a regression model in
-    a window before the reference interval, validates the model in a window before the reference interval and tests 
-    the model in a window after the reference interval. 
+    a window before the reference interval, validates the model in a window before the reference interval and tests
+    the model in a window after the reference interval.
 
     Args:
         df: The input dataframe.
@@ -431,16 +431,16 @@ def changepoint_scores(df, feats, target, d1, d2, w_train, w_val, w_test):
         w_test: The number of days defining the test set.
     Returns:
         y_pred_train: The array of predicted values in the training set.
-        score_train: An array containing scores for the training set: 
-        the coefficient of determination “R squared”, the mean absolute error, the mean error, 
+        score_train: An array containing scores for the training set:
+        the coefficient of determination “R squared”, the mean absolute error, the mean error,
         the mean absolute percentage error, the mean percentage error.
         y_pred_val: The array of predicted values in the validation set.
-        score_val: An array containing scores for the validation set: 
-        the coefficient of determination “R squared”, the mean absolute error, the mean error, 
+        score_val: An array containing scores for the validation set:
+        the coefficient of determination “R squared”, the mean absolute error, the mean error,
         the mean absolute percentage error, the mean percentage error.
         y_pred_test: The array of predicted values in the test set.
-        score_test: An array containing scores for the test set: 
-        the coefficient of determination “R squared”, the mean absolute error, the mean error, 
+        score_test: An array containing scores for the test set:
+        the coefficient of determination “R squared”, the mean absolute error, the mean error,
         the mean absolute percentage error, the mean percentage error.
     """
 
@@ -454,7 +454,7 @@ def changepoint_scores(df, feats, target, d1, d2, w_train, w_val, w_test):
         model, y_pred_train, r_sq_train, mae_train, me_train, mape_train, mpe_train, Me_train = fit_linear_model(df_train, feats, target)
         y_pred_val = predict(df_val, model, feats, target)
         y_pred_test = predict(df_test, model, feats, target)
-        
+
         r_sq_val, mae_val, me_val, mape_val, mpe_val, Me_val = st.score(df_val[target].values, y_pred_val)
         r_sq_test, mae_test, me_test, mape_test, mpe_test, Me_test = st.score(df_test[target].values, y_pred_test)
         score_train = np.array([-r_sq_train, mae_train, me_train, mape_train, mpe_train, Me_train])

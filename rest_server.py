@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request, jsonify
 from changepoint_detection import run_cp_detection, read_wash_csv
 from rains import extract_rains
+from power_index import calculate_pi
 
 app = Flask(__name__)
 
@@ -54,6 +55,22 @@ def rains(dataset_id):
     end_date = request.json.get('end_date')
     result_df = extract_rains(path, start_date, end_date)
     return result_df.astype(str).to_json()
+
+
+@app.route("/power_index/<dataset_id>", methods=['POST'])
+def pi_calculation(dataset_id):
+    start_date = request.json.get('start_date')
+    end_date = request.json.get('end_date')
+    weeks_train = request.json.get('weeks_train', 4)
+    cp_starts = request.json.get('cp_starts', [])
+    cp_ends = request.json.get('cp_ends', [])
+    path = path_dict[dataset_id]['data']
+    result_df = calculate_pi(path=path, start_date=start_date,
+                             end_date=end_date, weeks_train=weeks_train,
+                             cp_starts=cp_starts, cp_ends=cp_ends)
+    path_out = f'./outputs/{dataset_id}_power_index.csv'
+    result_df.to_csv(path_out)
+    return {"path_output": path_out}, 200
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8889, debug=True)
