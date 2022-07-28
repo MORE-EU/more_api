@@ -35,8 +35,8 @@ def cp_detection(dataset_id):
     wb1 = request.json.get('wb1', 10)
     wb2 = request.json.get('wb2', 5)
     thrsh = request.json.get('thrsh', 1)
-    custom_cp_starts = request.json.get('c_starts', [])
-    custom_cp_ends = request.json.get('c_ends', [])
+    custom_cp_starts = request.json.get('cp_starts', [])
+    custom_cp_ends = request.json.get('cp_ends', [])
     path = path_dict[dataset_id]['data']
     wash_path = path_dict[dataset_id]['washes']
     result_df = run_cp_detection(path=path, wash_path=wash_path,
