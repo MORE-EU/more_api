@@ -64,10 +64,12 @@ def pi_calculation(dataset_id):
     weeks_train = request.json.get('weeks_train', 4)
     cp_starts = request.json.get('cp_starts', [])
     cp_ends = request.json.get('cp_ends', [])
+    query_modelar = request.json.get('query_modelar', False)
     path = path_dict[dataset_id]['data']
     result_df = calculate_pi(path=path, start_date=start_date,
                              end_date=end_date, weeks_train=weeks_train,
-                             cp_starts=cp_starts, cp_ends=cp_ends)
+                             cp_starts=cp_starts, cp_ends=cp_ends,
+                             query_modelar=query_modelar)
     path_out = f'./outputs/{dataset_id}_power_index.csv'
     result_df.to_csv(path_out)
     return {"path_output": path_out}, 200

@@ -15,13 +15,22 @@ from modules.preprocessing import *
 from modules.statistics import *
 from modules.learning import *
 from modules.io import *
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 def calculate_pi(weeks_train, start_date, end_date,
-                 path, cp_starts, cp_ends):
+                 path, cp_starts, cp_ends, query_modelar=False):
 
     filename = path
-    df = pd.read_csv(filename, index_col = 'timestamp')
+
+    if not query_modelar:
+        df = pd.read_csv(filename, index_col = 'timestamp')
+    else:
+        print("Use modelar")
+        df = load_df_modelar([1, 2, 3], ['irradiance', 'power', 'mod_temp'],
+                             hostname='localhost', limit=10**6)
+
     df = df.dropna()
     df.index = pd.DatetimeIndex(df.index)
     feats = ['irradiance', 'mod_temp']
@@ -37,6 +46,7 @@ def calculate_pi(weeks_train, start_date, end_date,
 
     scaler = MinMaxScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
+    #print(df.shape)
 
     ref_points = pd.Index(pd.Series(cp_ends))
     ### debugging print in comments
