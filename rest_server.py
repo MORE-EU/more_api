@@ -69,7 +69,7 @@ def pi_calculation(dataset_id):
     result_df = calculate_pi(path=path, start_date=start_date,
                              end_date=end_date, weeks_train=weeks_train,
                              cp_starts=cp_starts, cp_ends=cp_ends,
-                             query_modelar=query_modelar)
+                             query_modelar=query_modelar, dataset_id=dataset_id)
     path_out = f'./outputs/{dataset_id}_power_index.csv'
     result_df.to_csv(path_out)
     return {"path_output": path_out}, 200

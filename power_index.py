@@ -19,10 +19,24 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
-def calculate_pi(weeks_train, start_date, end_date,
-                 path, cp_starts, cp_ends, query_modelar=False):
+def calculate_pi(weeks_train, start_date, end_date, path, dataset_id,
+                cp_starts, cp_ends, query_modelar=False):
 
     filename = path
+
+    res_df = load_power_index_cql(start_date=start_date, end_date='end_date',
+                                  dataset=dataset_id, cp_starts=cp_starts, cp_ends=cp_ends,
+                                  weeks_train=weeks_train, query_modelar=query_modelar)
+
+    if res_df is not None:
+        # if power index is stored in cassandra dont recalculate
+        res_df.set_index('timestamp', inplace=True)
+        res_df.index = pd.DatetimeIndex(res_df.index)
+        res_df.columns = ['power_index', 'estimated_power_lost']
+        res_df.sort_index(inplace=True)
+        return res_df
+
+
 
     if not query_modelar:
         df = pd.read_csv(filename, index_col = 'timestamp')
@@ -46,51 +60,29 @@ def calculate_pi(weeks_train, start_date, end_date,
 
     scaler = MinMaxScaler()
     df_scaled = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
-    #print(df.shape)
 
     ref_points = pd.Index(pd.Series(cp_ends))
-    ### debugging print in comments
-    #print(cp_ends)
     model1, _, _ = train_on_reference_points(df_scaled, w_train, ref_points, feats, target)
 
     est = predict(df_scaled, model1, feats, target)
-    #print(df_scaled.shape)
-    #est = np.clip(est, 0, 1)
-    #negatives = [x for x in est if x == 0]
-    #print(f"Shape of estimations {est.shape}")
-    #print(f"Number of neg {len(negatives)}")
     df_est = pd.DataFrame(est, columns=['estimated_power'], index=df_scaled.index)
-    #print(df_scaled.power.resample("1D").median().head(5))
-    #print(df_scaled.power.head(60))
-    #print(f"est nans = {df_est.estimated_power.isna().sum()}")
     pi_daily = (df_scaled.power/df_est.estimated_power).resample("1D").median()
-    #print(f"pi nans = {pi_daily.isna().sum()}")
     pi_daily = np.clip(pi_daily, 0, 1)
     pi_daily = pi_daily.ffill()
-    ### try a smoothened version
-    #pi_daily = pi_daily.ffill().rolling('7D').median()
-    ### debugging plot
-    #daily_derate = df.soiling_derate.resample("1D").median()
-    #daily_derate = daily_derate.ffill()
     df_daily = df.resample("1D").sum()
     df_daily = df_daily.ffill()
-    #plt.figure(figsize=(12,8))
-    #plt.plot(pi_daily.values, label='pred')
-    #plt.plot(daily_derate.values)
-    #plt.legend()
-    #plt.savefig('./test_derate.png')
-    #print(daily_derate)
-    ### calculate aggregate power loss
     daily_loss = calculate_daily_loss(pi_daily, df_daily)
     df_result = pd.concat([pi_daily, daily_loss], axis=1)
     df_result.columns = ['power_index', 'estimated_power_lost']
+    save_power_index_cql(df_result, start_date=start_date, end_date='end_date',
+                         dataset=dataset_id, cp_starts=cp_starts, cp_ends=cp_ends,
+                         weeks_train=weeks_train, query_modelar=query_modelar)
+
     return df_result
 
 
 def calculate_daily_loss(pi_daily, df_daily):
     daily_loss = (df_daily.power/pi_daily) - df_daily.power
-    #print(pi_daily.values)
-    #print(daily_loss.sum())
     return daily_loss
 
 
