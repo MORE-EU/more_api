@@ -32,8 +32,6 @@ def cp_detection(dataset_id):
     wa1 = request.json.get('wa1', 10)
     wa2 = request.json.get('wa2', 5)
     wa3 = request.json.get('wa3', 10)
-    wb1 = request.json.get('wb1', 10)
-    wb2 = request.json.get('wb2', 5)
     thrsh = request.json.get('thrsh', 1)
     custom_cp_starts = request.json.get('cp_starts', [])
     custom_cp_ends = request.json.get('cp_ends', [])
@@ -42,8 +40,7 @@ def cp_detection(dataset_id):
     result_df = run_cp_detection(path=path, wash_path=wash_path,
                                  start_date=start_date,
                                  end_date=end_date, w_train=w_train,
-                                 wa1=wa1, wa2=wa2, wa3=wa3,
-                                 wb1=wb1, wb2=wb2, thrsh=thrsh,
+                                 wa1=wa1, wa2=wa2, wa3=wa3, thrsh=thrsh,
                                  custom_cp_starts=custom_cp_starts,
                                  custom_cp_ends=custom_cp_ends)
     return result_df.astype(str).to_json()

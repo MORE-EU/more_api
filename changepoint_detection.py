@@ -27,8 +27,8 @@ def get_wash_dates(wash_path):
     dates_wash_stop = pd.to_datetime(wash_df.stop, format='%Y-%m-%d %H:%M:%S')
     return dates_wash_start, dates_wash_stop
 
-def run_cp_detection(w_train, wa1, wa2, wa3, wb1, wb2, thrsh,
-                     start_date, end_date, path, custom_cp_starts,
+def run_cp_detection(w_train, wa1, wa2, wa3, thrsh, start_date,
+                     end_date, path, custom_cp_starts,
                      custom_cp_ends, wash_path='',
                      extr_rains=True, method="method1"):
     filename = path
