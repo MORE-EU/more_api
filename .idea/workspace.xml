@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2a7f7f93-9ebc-4d65-b130-223f3fa83016" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/changepoint_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/changepoint_detection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rest_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/rest_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/learning.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/learning.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/power_index.py" beforeDir="false" afterPath="$PROJECT_DIR$/power_index.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +50,10 @@
       <workItem from="1655373228810" duration="2761000" />
       <workItem from="1655380842054" duration="610000" />
       <workItem from="1655386756959" duration="1000" />
-      <workItem from="1657271006896" duration="3036000" />
+      <workItem from="1657271006896" duration="3691000" />
+      <workItem from="1658316604849" duration="356000" />
+      <workItem from="1658996364059" duration="3032000" />
+      <workItem from="1659013167534" duration="2151000" />
     </task>
     <servers />
   </component>

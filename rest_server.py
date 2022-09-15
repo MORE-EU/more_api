@@ -1,8 +1,9 @@
 from flask import Flask
-from flask import request, jsonify
+from flask import request, jsonify, url_for, send_file
 from changepoint_detection import run_cp_detection, read_wash_csv
 from rains import extract_rains
 from power_index import calculate_pi
+import os
 
 app = Flask(__name__)
 
@@ -67,9 +68,11 @@ def pi_calculation(dataset_id):
                              end_date=end_date, weeks_train=weeks_train,
                              cp_starts=cp_starts, cp_ends=cp_ends,
                              query_modelar=query_modelar, dataset_id=dataset_id)
-    path_out = f'./outputs/{dataset_id}_power_index.csv'
+    filename = f'{dataset_id}_power_index.csv'
+    path_out = f'./outputs/{filename}'
     result_df.to_csv(path_out)
-    return {"path_output": path_out}, 200
+    return send_file(path_out, as_attachment=True)
+    #return url_for('static', filename=filename)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8889, debug=True)

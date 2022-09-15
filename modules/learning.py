@@ -56,7 +56,6 @@ def fit_linear_model(df, feats, target, a=1e-4, deg=3, method='ridge', fit_inter
         mape: The mean absolute percentage error.
         mpe: The mean percentage error.
     """
-
     df_x = df[feats]
     df_y = df[target]
     X = df_x.values
@@ -129,7 +128,6 @@ def train_on_reference_points(df, w_train, ref_points, feats, target, random_sta
         validation_scores: An array containing scores for the validation set. It contains the coefficient
         of determination “R squared”, the mean absolute error, the mean error, the mean absolute percentage error.
     """
-
     df_train = pd.DataFrame([])
     df_val = pd.DataFrame([])
     for idx in range(ref_points.size):
