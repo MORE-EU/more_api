@@ -3,6 +3,7 @@ from flask import request, jsonify, url_for, send_file
 from changepoint_detection import run_cp_detection, read_wash_csv
 from rains import extract_rains
 from power_index import calculate_pi
+from yaw_misalignment import estimate_yaw
 import os
 
 app = Flask(__name__)
@@ -12,6 +13,8 @@ data_dict = {"eugene": {"id":1, "name":"Eugene", "washes": True},
 
 path_dict = {"eugene": {"data":"./data/eugene.csv", "washes":"./data/eugene_washes.csv"},
              "cocoa": {"data":"./data/cocoa.csv", "washes":""}}
+
+path_dict_yaw = {"bbz2": {"data":'/data/data2/engie_initial/post_treated_data/BEZ/BEBEZE02_scada_high_frequency.parquet'}}
 
 @app.route("/data", methods=['GET'])
 def get_data():
@@ -69,6 +72,23 @@ def pi_calculation(dataset_id):
                              cp_starts=cp_starts, cp_ends=cp_ends,
                              query_modelar=query_modelar, dataset_id=dataset_id)
     filename = f'{dataset_id}_power_index.csv'
+    path_out = f'./outputs/{filename}'
+    result_df.to_csv(path_out)
+    return send_file(path_out, as_attachment=True)
+    #return url_for('static', filename=filename)
+
+@app.route("/yaw_misalignment/<dataset_id>", methods=['POST'])
+def yaw_estimation(dataset_id):
+    start_date = request.json.get('start_date')
+    end_date = request.json.get('end_date')
+    window = request.json.get('window', 2)
+    query_modelar = request.json.get('query_modelar', False)
+    path = path_dict_yaw[dataset_id]['data']
+    result_df = estimate_yaw(path=path, start_date=start_date,
+                             end_date=end_date, window=window,
+                             query_modelar=query_modelar, dataset_id=dataset_id)
+
+    filename = f'{dataset_id}_yaw_estimation.csv'
     path_out = f'./outputs/{filename}'
     result_df.to_csv(path_out)
     return send_file(path_out, as_attachment=True)

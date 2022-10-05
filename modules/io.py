@@ -12,14 +12,64 @@ from more_utils.persistence import ModelarDB
 from more_utils.service import TimeseriesService
 from cassandra.cluster import Cluster
 import json
+import joblib
+from io import BytesIO
 
 CASSANDRA_IP = os.environ.get('CASSANDRA_IP', '172.17.0.2')
 SOIL_KEYSPACE = os.environ.get('SOIL_KEYSPACE', 'moreapi')
+YAW_KEYSPACE = os.environ.get('YAW_KEYSPACE', 'moreapi')
+
+
+def save_model_scaler_cql(model, scaler, name='demo_model'):
+
+    cluster = Cluster([CASSANDRA_IP]) # cassandra adress
+    session = cluster.connect(YAW_KEYSPACE) # yaw keyspace
+
+    with BytesIO() as serialized_model, BytesIO() as serialized_scaler:
+        print(model)
+        joblib.dump(model, serialized_model)
+        joblib.dump(scaler, serialized_scaler)
+
+        stmt = """INSERT INTO model_storage(id, name, model, scaler)
+                   VALUES (uuid(), ?, ?, ?)"""
+
+        prepared = session.prepare(stmt)
+        serialized_model.seek(0)
+        serialized_scaler.seek(0)
+        # save model and scaler to cassandra
+        session.execute(prepared, (name, serialized_model.read(), serialized_scaler.read()))
+
+def load_model_scaler_cql(name='demo_model'):
+
+    cluster = Cluster([CASSANDRA_IP]) # cassandra adress
+    session = cluster.connect(YAW_KEYSPACE) # yaw keyspace
+
+    #joblib.dump(model, serialized_model)
+    #joblib.dump(scaler, serialized_scaler)
+
+    stmt = """SELECT * FROM model_storage
+              WHERE name = ?"""
+
+    prepared = session.prepare(stmt)
+
+    # save model and scaler to cassandra
+    print(name)
+    res = session.execute(prepared, (name,))
+    #for r in res:
+    #    print(r)
+    for row in res:
+        m = row.model
+        s = row.scaler
+        m = BytesIO(m)
+        s = BytesIO(s)
+    pipe = joblib.load(m)
+    scaler = joblib.load(s)
+    return pipe, scaler
 
 
 def save_power_index_cql(df, start_date, end_date,
-                           dataset, cp_starts, cp_ends,
-                           weeks_train, query_modelar):
+                         dataset, cp_starts, cp_ends,
+                         weeks_train, query_modelar):
 
     cluster = Cluster([CASSANDRA_IP]) # cassandra adress
     session = cluster.connect(SOIL_KEYSPACE) # soiling keyspace
