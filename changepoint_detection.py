@@ -123,16 +123,4 @@ def run_cp_detection(w_train, wa1, wa2, wa3, thrsh, start_date,
     df_events_output1=pd.DataFrame(output_changepoints(scores1, indices1, p_changepoints_start, p_changepoints_stop,
                                    errors_br1[:, error_br_column], errors_ar1[:, error_ar_column], error_name_br, error_name_ar, precip))
 
-    # effective changepoints = the ones with score at least thrsh
-    mask1 = (df_events_output1['Score']>thrsh)
-
-    effective_cp1 = df_events_output1[mask1]["id"].values
-
-
-    dates_changepoints = pd.DatetimeIndex(p_changepoints_stop.iloc[list(effective_cp1)])
-
-    dates_start = (pd.Index(pd.Series(p_changepoints_start.iloc[list(effective_cp1)].tolist()).sort_values()))
-    dates_stop = (pd.Index(pd.Series(p_changepoints_stop.iloc[list(effective_cp1)].tolist()).sort_values()))
-
-    res = pd.DataFrame(list(zip(dates_start, dates_stop)), columns=['Starting_date', 'Ending_date'])
-    return res
+    return df_events_output1
